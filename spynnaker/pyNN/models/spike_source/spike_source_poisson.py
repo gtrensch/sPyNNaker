@@ -124,9 +124,12 @@ class SpikeSourcePoisson(
         max_rate = numpy.amax(
             self._rate[vertex_slice.lo_atom:vertex_slice.hi_atom + 1])
         ts_per_second = 1000000.0 / machine_time_step
-        max_spikes_per_ts = scipy.stats.poisson.ppf(
-            1.0 - (1.0 / n_machine_time_steps),
-            max_rate / ts_per_second)
+        if n_machine_time_steps is not None:
+            max_spikes_per_ts = scipy.stats.poisson.ppf(
+                1.0 - (1.0 / n_machine_time_steps),
+                max_rate / ts_per_second)
+        else:
+            max_spikes_per_ts = (max_rate / ts_per_second) * 1.1 # Magic!
         return int(math.ceil(max_spikes_per_ts))
 
     @inject_items({
