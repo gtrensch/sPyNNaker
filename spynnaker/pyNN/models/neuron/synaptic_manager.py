@@ -35,9 +35,10 @@ from spynnaker.pyNN.utilities import globals_variables
 
 # TODO: Make sure these values are correct (particularly CPU cycles)
 _SYNAPSES_BASE_DTCM_USAGE_IN_BYTES = 28
-_SYNAPSES_BASE_SDRAM_USAGE_IN_BYTES = 0
+_SYNAPSES_BASE_SDRAM_USAGE_IN_BYTES = 8
 _SYNAPSES_BASE_N_CPU_CYCLES_PER_NEURON = 10
 _SYNAPSES_BASE_N_CPU_CYCLES = 8
+_SYNAPSE_TYPE_BASE_COST = 4
 
 
 class SynapticManager(object):
@@ -156,7 +157,8 @@ class SynapticManager(object):
             self._synapse_type.get_sdram_usage_per_neuron_in_bytes())
         return (_SYNAPSES_BASE_SDRAM_USAGE_IN_BYTES +
                 (per_neuron_usage * vertex_slice.n_atoms) +
-                (4 * self._synapse_type.get_n_synapse_types()))
+                (_SYNAPSE_TYPE_BASE_COST *
+                 self._synapse_type.get_n_synapse_types()))
 
     def _get_static_synaptic_matrix_sdram_requirements(self):
 
@@ -290,8 +292,8 @@ class SynapticManager(object):
                 vertex_slice, in_edges))
 
     def _reserve_memory_regions(
-            self, spec, application_vertex, machine_vertex, vertex_slice,
-            application_graph, machine_graph, all_syn_block_sz, graph_mapper):
+            self, spec, machine_vertex, vertex_slice, machine_graph,
+            all_syn_block_sz, graph_mapper):
 
         spec.reserve_memory_region(
             region=constants.POPULATION_BASED_REGIONS.SYNAPSE_PARAMS.value,
@@ -549,10 +551,17 @@ class SynapticManager(object):
 
         spec.switch_write_focus(
             region=constants.POPULATION_BASED_REGIONS.SYNAPSE_PARAMS.value)
+
+        # write the initial input buffer values
+        spec.write_array(
+            self._synapse_type.get_synapse_type_initial_buffers_parameters())
+
+        # write synapse params
         utility_calls.write_parameters_per_neuron(
             spec, post_vertex_slice,
             self._synapse_type.get_synapse_type_parameters())
 
+        # write ring buffer shifts
         spec.write_array(ring_buffer_shifts)
 
         weight_scales = numpy.array([
@@ -771,8 +780,8 @@ class SynapticManager(object):
             post_slices, post_slice_index, post_vertex_slice, graph_mapper,
             in_edges, machine_time_step)
         self._reserve_memory_regions(
-            spec, application_vertex, machine_vertex, post_vertex_slice,
-            application_graph, machine_graph, all_syn_block_sz, graph_mapper)
+            spec, machine_vertex, post_vertex_slice, machine_graph,
+            all_syn_block_sz, graph_mapper)
 
         weight_scales = self._write_synapse_parameters(
             spec, machine_vertex, machine_graph, graph_mapper, post_slices,

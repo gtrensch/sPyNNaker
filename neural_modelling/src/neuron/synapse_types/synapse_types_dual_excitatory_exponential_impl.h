@@ -31,8 +31,6 @@ typedef struct synapse_param_t {
     decay_t exc2_init;
     decay_t inh_decay;
     decay_t inh_init;
-    input_t gsyn_excitatory_initial_value;
-    input_t gsyn_inhibitory_initial_value;
 } synapse_param_t;
 
 #include "synapse_types.h"

@@ -1,3 +1,4 @@
+from spinn_utilities.overrides import overrides
 from spynnaker.pyNN.models.abstract_models.abstract_contains_units import \
     AbstractContainsUnits
 from spynnaker.pyNN.utilities import utility_calls
@@ -101,7 +102,12 @@ class SynapseTypeExponential(AbstractSynapseType, AbstractContainsUnits):
             NeuronParameter(e_decay, DataType.UINT32),
             NeuronParameter(e_init, DataType.UINT32),
             NeuronParameter(i_decay, DataType.UINT32),
-            NeuronParameter(i_init, DataType.UINT32),
+            NeuronParameter(i_init, DataType.UINT32)
+        ]
+
+    @overrides(AbstractSynapseType.get_synapse_type_initial_buffers_parameters)
+    def get_synapse_type_initial_buffers_parameters(self):
+        return [
             NeuronParameter(self._initial_input_exc, DataType.S1615),
             NeuronParameter(self._initial_input_inh, DataType.S1615)
         ]

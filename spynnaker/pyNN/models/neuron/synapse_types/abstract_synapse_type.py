@@ -61,6 +61,13 @@ class AbstractSynapseType(object):
         :rtype: int
         """
 
+    @abstractmethod
+    def get_synapse_type_initial_buffers_parameters(self):
+        """ gets the initial input buffer values
+
+        :return:
+        """
+
     def get_n_synapse_type_bits(self):
         """ Get the number of bits required to represent the synapse types
 
